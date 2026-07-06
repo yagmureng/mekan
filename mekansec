@@ -1,0 +1,793 @@
+```html
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nereye Gidiyoruz? - Meyhane Seçim Sunumu</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons for beautiful UI -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #020617;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-100 flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Top Navigation / Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur px-6 py-4 flex flex-wrap justify-between items-center gap-4 z-10 shrink-0">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl">🥂</span>
+            <div>
+                <h1 class="text-lg font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-rose-400">NEREYE GİDİYORUZ?</h1>
+                <p class="text-xs text-slate-400">Ekip İçin Meyhane Seçim Rehberi</p>
+            </div>
+        </div>
+        
+        <!-- Navigation Modes -->
+        <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <button id="btn-slide-mode" onclick="setMode('slide')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20">
+                <i class="fa-solid fa-play"></i> Sunum Modu
+            </button>
+            <button id="btn-grid-mode" onclick="setMode('grid')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-grip"></i> Tüm Mekanlar
+            </button>
+            <button id="btn-vote-mode" onclick="setMode('vote')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-square-poll-vertical"></i> Karar Ver / Oy Ver
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow flex flex-col items-center justify-center p-4 md:p-8 relative overflow-y-auto max-w-7xl w-full mx-auto">
+        
+        <!-- 1. SLIDE MODE -->
+        <div id="slide-mode-container" class="w-full max-w-4xl flex flex-col justify-between h-full min-h-[500px]">
+            <!-- Dynamic Slide Display -->
+            <div id="slide-content" class="transition-all duration-300 transform ease-in-out opacity-100 flex-grow flex items-center">
+                <!-- Slide Content will be injected here by JS -->
+            </div>
+
+            <!-- Slide Navigation Footer -->
+            <div class="flex items-center justify-between mt-8 pt-4 border-t border-slate-800/60 shrink-0">
+                <button onclick="prevSlide()" class="bg-slate-900 hover:bg-slate-800 border border-slate-700/50 hover:border-slate-600 px-5 py-3 rounded-xl font-medium transition-all text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Önceki
+                </button>
+                <div class="flex items-center gap-3">
+                    <span id="slide-indicator" class="text-sm text-slate-400 font-medium">1 / 8</span>
+                </div>
+                <button onclick="nextSlide()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-5 py-3 rounded-xl shadow-lg shadow-amber-500/10 transition-all text-sm flex items-center gap-2">
+                    Sonraki <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. GRID MODE -->
+        <div id="grid-mode-container" class="w-full hidden">
+            <!-- Filter Options -->
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-6 bg-slate-900/50 p-4 rounded-2xl border border-slate-800/80">
+                <div class="flex flex-wrap gap-2" id="filter-buttons">
+                    <button onclick="filterVenues('all')" class="filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 transition-all">Hepsi</button>
+                    <button onclick="filterVenues('Fasıl / Eğlence')" class="filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition-all">Fasıl & Eğlence</button>
+                    <button onclick="filterVenues('Manzara / Şık')" class="filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition-all">Manzara & Şık</button>
+                    <button onclick="filterVenues('Modern / Yeni Nesil')" class="filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition-all">Modern</button>
+                    <button onclick="filterVenues('Klasik / Sakin')" class="filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition-all">Klasik & Sakin</button>
+                </div>
+                <div class="text-sm text-slate-400 font-medium">
+                    Toplam <span id="venue-count" class="text-amber-400 font-bold">7</span> Mekan Listeleniyor
+                </div>
+            </div>
+
+            <!-- Grid Content -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="grid-content">
+                <!-- Grid Cards will be injected by JS -->
+            </div>
+        </div>
+
+        <!-- 3. VOTE MODE -->
+        <div id="vote-mode-container" class="w-full max-w-4xl hidden flex flex-col gap-6">
+            <div class="text-center max-w-xl mx-auto mb-4">
+                <span class="bg-rose-500/10 text-rose-400 border border-rose-500/20 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-widest">Grup Kararı</span>
+                <h2 class="text-3xl font-extrabold mt-3">Nereye Gidiyoruz? 🗳️</h2>
+                <p class="text-slate-400 text-sm mt-2">Arkadaşlarınızın fikirlerini toplayın. Herkes gitmek istediği mekanlara oy versin, favorimizi ortaklaşa seçelim!</p>
+            </div>
+
+            <!-- Vote Cards Layout -->
+            <div class="bg-slate-900/60 rounded-3xl border border-slate-800 p-6 flex flex-col gap-4">
+                <div id="vote-cards-list" class="flex flex-col gap-3">
+                    <!-- Dynamic Voting Rows will be injected here -->
+                </div>
+                
+                <!-- Reset & Results Controls -->
+                <div class="flex flex-wrap justify-between items-center gap-4 pt-4 border-t border-slate-800/80 mt-2">
+                    <button onclick="resetVotes()" class="text-slate-500 hover:text-rose-400 text-xs font-bold transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-left"></i> Oyları Sıfırla
+                    </button>
+                    <button onclick="showWinner()" class="bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-extrabold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shadow-rose-500/10 flex items-center gap-2">
+                        <i class="fa-solid fa-trophy"></i> Kazanan Mekanı Açıkla!
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Custom Modal for Winner -->
+    <div id="winner-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+        <div class="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-400/50 p-8 rounded-3xl max-w-lg w-full text-center relative shadow-2xl shadow-amber-500/10 transform scale-95 transition-all duration-300" id="winner-card">
+            <!-- Close button -->
+            <button onclick="closeWinnerModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="text-6xl mb-4 animate-bounce">🏆</div>
+            <span class="text-amber-400 text-xs font-black tracking-widest uppercase bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full">Gecenin Kazananı</span>
+            <h3 id="winner-name" class="text-4xl font-extrabold text-white mt-4 tracking-tight">Mekan İsmi</h3>
+            
+            <div class="my-6 bg-slate-950/60 p-4 rounded-2xl border border-slate-800 inline-block">
+                <p class="text-slate-400 text-xs">Toplam Kazanılan Oy</p>
+                <p id="winner-votes" class="text-3xl font-black text-rose-400 mt-1">12 Oy</p>
+            </div>
+
+            <p id="winner-quote" class="text-slate-300 italic text-sm px-4">"Harika bir tercih! En dengeli seçenek ve harika mezeler bizi bekliyor."</p>
+            
+            <div class="mt-8 flex justify-center gap-3">
+                <button onclick="closeWinnerModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20 w-full">
+                    Süper, Rezerve Edelim! 🎉
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Navigation Banner for Presentation -->
+    <footer class="bg-slate-900/30 border-t border-slate-900 px-6 py-4 flex flex-wrap justify-between items-center text-xs text-slate-500 gap-4 shrink-0">
+        <div>
+            Klavye Yön Tuşları <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-slate-400 text-[10px]">←</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-slate-400 text-[10px]">→</kbd> ile slaytları değiştirebilirsiniz.
+        </div>
+        <div class="flex gap-4">
+            <span>Öneri: <b>Maziden Meyhane</b> (Güvenli Bölge)</span>
+            <span>•</span>
+            <span>Ağustos 2026</span>
+        </div>
+    </footer>
+
+    <!-- JS Logic & Data -->
+    <script>
+        // Database of venues with enhanced presentation attributes
+        const venues = [
+            {
+                id: 1,
+                rank: "🥇 1.",
+                name: "Maziden Meyhane",
+                score: 9.5,
+                tag: "Fasıl / Eğlence",
+                color: "from-amber-400 to-amber-600",
+                lightColor: "amber",
+                highlight: "En dengeli seçenek.",
+                summary: "Klasik fasıl ve harika mezelerin modern bir ortamda dengelendiği, risk almak istemeyen gruplar için nokta atışı tercih.",
+                pros: [
+                    "Mezeleri çok başarılı ve taze.",
+                    "Fasıl ve eğlence dozu tam kararında, konuşmayı engellemiyor.",
+                    "Çiftler ve arkadaş grupları için son derece ideal."
+                ],
+                verdict: "En güvenli tercih. Herkesi mutlu eder.",
+                imagePlaceholder: "Meze tabakları, fasıl ekibi ve sıcak ışıklandırma"
+            },
+            {
+                id: 2,
+                rank: "🥈 2.",
+                name: "Sekizdeyiz",
+                score: 9.0,
+                tag: "Manzara / Şık",
+                color: "from-blue-400 to-indigo-600",
+                lightColor: "indigo",
+                highlight: "Deniz manzarası ve yüksek kalite.",
+                summary: "Boğaz veya deniz esintisiyle şık, kaliteli ve nezih bir gece geçirmek isteyenlerin ortak favorisi.",
+                pros: [
+                    "Harika ve büyüleyici bir deniz manzarası.",
+                    "Oldukça şık, elit ve özenli bir ortam.",
+                    "Yemek kalitesi standart üstü, gurme mezeler."
+                ],
+                verdict: "Şık, kaliteli ve manzaralı bir akşam isteyenlere.",
+                imagePlaceholder: "Panoramik deniz manzarası, şık kadehler ve modern masa düzeni"
+            },
+            {
+                id: 3,
+                rank: "🥉 3.",
+                name: "Zevk Lokanta",
+                score: 8.8,
+                tag: "Modern / Yeni Nesil",
+                color: "from-emerald-400 to-teal-600",
+                lightColor: "emerald",
+                highlight: "Modern meyhane akımının öncüsü.",
+                summary: "Yeni nesil meze dokunuşları, eğlenceli müzikleri ve trend ortamıyla son dönemin en popüler adreslerinden.",
+                pros: [
+                    "Modern meyhane konsepti ve taze enerji.",
+                    "Sunumlar oldukça yaratıcı ve başarılı.",
+                    "Müzik kürasyonu güzel, ortam dinamik ve keyifli."
+                ],
+                verdict: "Yeni nesil eğlence ve harika sunumlar arayanlara.",
+                imagePlaceholder: "Renkli neon detaylar, yaratıcı sunumlu modern mezeler"
+            },
+            {
+                id: 4,
+                rank: "4.",
+                name: "Sarnıç Meyhane",
+                score: 8.6,
+                tag: "Klasik / Sakin",
+                color: "from-slate-400 to-slate-600",
+                lightColor: "slate",
+                highlight: "Klasik meyhane ruhu.",
+                summary: "Samimi, sıcak ve köklü meyhane kültürünü yaşatan, dost muhabbetinin ön planda olduğu sığınak.",
+                pros: [
+                    "Geleneksel ve samimi meyhane atmosferi.",
+                    "Fasıl geceleri oldukça keyifli ve nostaljik.",
+                    "Çok cana yakın ve rahat bir ortam sunuyor."
+                ],
+                verdict: "Geleneksel fasıl ve samimi sohbet için.",
+                imagePlaceholder: "Tuğla duvarlar, ahşap masalar ve klasik fasıl sazları"
+            },
+            {
+                id: 5,
+                rank: "5.",
+                name: "Afitap Meyhane",
+                score: 8.5,
+                tag: "Klasik / Sakin",
+                color: "from-purple-400 to-fuchsia-600",
+                lightColor: "purple",
+                highlight: "Geleneksel fasıl ve rakı odağı.",
+                summary: "Biraz daha olgun yaş ortalamasına sahip, gürültüden uzak klasik rakı-meze deneyimi.",
+                pros: [
+                    "Geleneksel ve profesyonel fasıl ekibi.",
+                    "Doğrudan rakı-meze uyumuna odaklanan lezzetler.",
+                    "Yaş ortalaması daha yüksek, dolayısıyla daha dingin."
+                ],
+                verdict: "Oturaklı, rakı-meze odaklı klasik bir gece için.",
+                imagePlaceholder: "Geleneksel rakı sofrası, kavun, peynir ve klasik dekor"
+            },
+            {
+                id: 6,
+                rank: "6.",
+                name: "Alaçatı Kafası Suadiye",
+                score: 8.0,
+                tag: "Fasıl / Eğlence",
+                color: "from-rose-400 to-pink-600",
+                lightColor: "rose",
+                highlight: "Yüksek sesli eğlence ve Türkçe pop.",
+                summary: "Yemekten ziyade dans etmek, elleri havaya kaldırıp şarkı söylemek isteyenlerin adresi.",
+                pros: [
+                    "Tamamen eğlence ve yüksek enerji odaklı.",
+                    "DJ performansı ve popüler Türkçe pop ağırlıklı playlist.",
+                    "Özellikle doğum günleri ve kutlamalar için çok popüler."
+                ],
+                verdict: "Yemekten çok gece boyu dans etmek ve eğlenmek için.",
+                imagePlaceholder: "Renkli çiçekli dekorasyon, DJ kabini ve enerjik kalabalık"
+            },
+            {
+                id: 7,
+                rank: "7.",
+                name: "Zeytin Bostancı",
+                score: 7.8,
+                tag: "Manzara / Şık", // Using a tag category to cluster well
+                color: "from-orange-400 to-red-600",
+                lightColor: "orange",
+                highlight: "Ocakbaşı ve et odaklı lezzet turu.",
+                summary: "Meyhane müziklerinden ziyade mükemmel pişmiş etler ve mezeler eşliğinde rakı keyfi yapmak isteyenlerin yeri.",
+                pros: [
+                    "Meyhaneden çok kaliteli bir ocakbaşı deneyimi.",
+                    "Et ve kebap çeşitleri son derece başarılı.",
+                    "Rakı-et konseptini en iyi sunan lokasyonlardan."
+                ],
+                verdict: "Önceliği mezeden ziyade kırmızı et olan gruplara.",
+                imagePlaceholder: "Dumanı üstünde kebaplar, közlenmiş biberler ve sıcak ocakbaşı"
+            }
+        ];
+
+        // App state
+        let currentMode = 'slide'; // 'slide' | 'grid' | 'vote'
+        let currentSlideIndex = 0; // 0 to 8 (7 venues + 1 welcome/intro slide)
+        let votes = {};
+
+        // Initialize local votes if not set
+        venues.forEach(v => {
+            votes[v.id] = 0;
+        });
+
+        // Generate Slide UI
+        function renderSlide() {
+            const container = document.getElementById('slide-content');
+            
+            // Welcome Slide (Index 0)
+            if (currentSlideIndex === 0) {
+                container.innerHTML = `
+                    <div class="w-full text-center py-12 px-6 bg-slate-900/40 rounded-3xl border border-slate-800/80 backdrop-blur-sm shadow-xl flex flex-col items-center justify-center min-h-[450px]">
+                        <div class="animate-bounce text-6xl mb-6">🥂</div>
+                        <span class="text-xs font-black tracking-widest text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full uppercase">Kararsız Kalmaya Son</span>
+                        <h2 class="text-4xl md:text-5xl font-extrabold text-white mt-4 tracking-tight leading-tight">Büyük Meyhane Zirvesi:<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-rose-400">Bu Hafta Nereye Gidiyoruz?</span></h2>
+                        <p class="text-slate-400 max-w-xl text-sm md:text-base mt-4 leading-relaxed">Ekibimiz için en iyi 7 meyhane alternatifini listeledim, artılarını eksilerini çıkardım. Şimdi tek tek inceleme ve karar verme zamanı!</p>
+                        
+                        <div class="mt-8 flex flex-wrap gap-4 justify-center">
+                            <button onclick="nextSlide()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-6 py-3.5 rounded-xl text-sm shadow-lg shadow-amber-500/25 transition-all flex items-center gap-2">
+                                Sunumu Başlat <i class="fa-solid fa-play"></i>
+                            </button>
+                            <button onclick="setMode('grid')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-6 py-3.5 rounded-xl text-sm border border-slate-700/50 transition-all">
+                                Tüm Mekanları Listele
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('slide-indicator').innerText = `Başlangıç`;
+                return;
+            }
+
+            // Summary Comparison Slide (Index 8)
+            if (currentSlideIndex === 8) {
+                let rowsHtml = venues.map(v => `
+                    <tr class="border-b border-slate-800/60 hover:bg-slate-900/30 transition-all">
+                        <td class="py-3 px-4 font-bold text-slate-300 text-xs md:text-sm">${v.rank} ${v.name}</td>
+                        <td class="py-3 px-4">
+                            <span class="bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg text-[10px] md:text-xs font-bold border border-slate-700/50">${v.tag}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="text-amber-400 font-extrabold text-xs md:text-sm"><i class="fa-solid fa-star text-xs"></i> ${v.score}</span>
+                        </td>
+                        <td class="py-3 px-4 text-slate-400 text-xs truncate max-w-[200px] md:max-w-none hidden md:table-cell">${v.highlight}</td>
+                        <td class="py-3 px-4 text-right">
+                            <button onclick="goToVenueSlide(${v.id})" class="text-xs font-bold text-amber-400 hover:text-amber-300 transition-all flex items-center gap-1 ml-auto">
+                                İncele <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                container.innerHTML = `
+                    <div class="w-full bg-slate-900/40 rounded-3xl border border-slate-800/80 backdrop-blur-sm p-6 md:p-8 shadow-xl flex flex-col justify-between min-h-[450px]">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase">Özet Tablo</span>
+                            </div>
+                            <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-2">Karşılaştırma Listesi</h2>
+                            <p class="text-xs md:text-sm text-slate-400 mb-6">Puanlarına ve kategorilerine göre tüm meyhaneler bir arada.</p>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-slate-800 text-[10px] md:text-xs uppercase tracking-wider text-slate-500">
+                                            <th class="py-2 px-4">Mekan</th>
+                                            <th class="py-2 px-4">Tarz</th>
+                                            <th class="py-2 px-4">Puan</th>
+                                            <th class="py-2 px-4 hidden md:table-cell">Öne Çıkan Özellik</th>
+                                            <th class="py-2 px-4"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${rowsHtml}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 flex justify-between items-center bg-slate-950/50 p-4 rounded-2xl border border-slate-800">
+                            <p class="text-xs text-slate-400">Şimdi gruptakilerle birlikte karar verme zamanı!</p>
+                            <button onclick="setMode('vote')" class="bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl text-xs transition-all shadow-lg shadow-rose-500/10 flex items-center gap-1.5">
+                                <i class="fa-solid fa-square-poll-vertical"></i> Oylamayı Başlat
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('slide-indicator').innerText = `Karşılaştırma`;
+                return;
+            }
+
+            // Venue Slide (Indices 1 to 7)
+            const venue = venues[currentSlideIndex - 1];
+            
+            let starsHtml = '';
+            const fullStars = Math.floor(venue.score / 2);
+            for(let i=0; i<5; i++) {
+                if (i < fullStars) {
+                    starsHtml += `<i class="fa-solid fa-star text-amber-400"></i>`;
+                } else if (i === fullStars && venue.score % 2 >= 1) {
+                    starsHtml += `<i class="fa-solid fa-star-half-stroke text-amber-400"></i>`;
+                } else {
+                    starsHtml += `<i class="fa-regular fa-star text-slate-600"></i>`;
+                }
+            }
+
+            let prosHtml = venue.pros.map(pro => `
+                <li class="flex items-start gap-2.5 text-xs md:text-sm text-slate-300">
+                    <span class="text-emerald-400 mt-0.5"><i class="fa-solid fa-circle-check"></i></span>
+                    <span>${pro}</span>
+                </li>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="w-full bg-slate-900/30 rounded-3xl border border-slate-800/80 backdrop-blur-sm overflow-hidden shadow-2xl grid grid-cols-1 md:grid-cols-12 min-h-[480px]">
+                    
+                    <!-- Left Side Details -->
+                    <div class="p-6 md:p-8 md:col-span-7 flex flex-col justify-between">
+                        <div>
+                            <!-- Header / Badge -->
+                            <div class="flex flex-wrap items-center gap-2 mb-4">
+                                <span class="bg-amber-400/10 border border-amber-400/20 text-amber-400 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
+                                    Mekan #${currentSlideIndex}
+                                </span>
+                                <span class="bg-slate-800 text-slate-300 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                                    ${venue.tag}
+                                </span>
+                            </div>
+
+                            <!-- Name -->
+                            <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-2">
+                                <span class="text-transparent bg-clip-text bg-gradient-to-r ${venue.color}">${venue.rank}</span> ${venue.name}
+                            </h2>
+
+                            <!-- Stars & Rating -->
+                            <div class="flex items-center gap-2 mb-4">
+                                <div class="flex text-sm">${starsHtml}</div>
+                                <span class="text-slate-200 font-extrabold text-sm ml-1">${venue.score} / 10</span>
+                            </div>
+
+                            <!-- Summary -->
+                            <p class="text-slate-400 text-xs md:text-sm leading-relaxed mb-6">
+                                ${venue.summary}
+                            </p>
+
+                            <!-- Pros List -->
+                            <div class="space-y-3">
+                                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Öne Çıkan Artıları</h4>
+                                <ul class="space-y-2.5">
+                                    ${prosHtml}
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Verdict Card -->
+                        <div class="mt-6 p-4 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between gap-3">
+                            <div>
+                                <h5 class="text-[10px] font-black uppercase text-amber-500 tracking-wider">Benim Notum</h5>
+                                <p class="text-slate-300 text-xs md:text-sm font-semibold mt-0.5">${venue.verdict}</p>
+                            </div>
+                            <button onclick="addQuickVote(${venue.id})" class="shrink-0 bg-slate-900 hover:bg-slate-800 text-rose-400 hover:text-rose-300 p-2.5 rounded-xl border border-slate-800 hover:border-rose-500/20 transition-all text-xs flex items-center gap-1.5 font-bold">
+                                <i class="fa-solid fa-heart"></i> <span id="quick-vote-btn-text-${venue.id}">Oy Ver</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Side Decorative / Image Sketch Placeholder -->
+                    <div class="md:col-span-5 bg-gradient-to-br ${venue.color}/10 border-t md:border-t-0 md:border-l border-slate-800/80 p-8 flex flex-col justify-center items-center text-center relative overflow-hidden min-h-[220px] md:min-h-0">
+                        <!-- Abstract Art Grid Pattern overlay -->
+                        <div class="absolute inset-0 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] bg-[size:14px_24px] opacity-20"></div>
+                        
+                        <div class="relative z-10">
+                            <!-- Circular Graphic -->
+                            <div class="w-20 h-20 rounded-full bg-gradient-to-tr ${venue.color} p-0.5 mb-4 mx-auto shadow-lg shadow-amber-500/10 flex items-center justify-center">
+                                <div class="w-full h-full rounded-full bg-slate-950 flex items-center justify-center text-2xl">
+                                    ${venue.id === 1 ? '🥇' : venue.id === 2 ? '🥈' : venue.id === 3 ? '🥉' : '🍽️'}
+                                </div>
+                            </div>
+                            <span class="text-[11px] font-bold text-slate-400 block mb-1">Görsel Atmosfer Taslağı</span>
+                            <p class="text-slate-200 text-sm font-extrabold max-w-[180px] mx-auto leading-snug">
+                                ${venue.imagePlaceholder}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('slide-indicator').innerText = `${currentSlideIndex} / 7`;
+        }
+
+        // Slide Navigation functions
+        function nextSlide() {
+            if (currentSlideIndex < 8) {
+                currentSlideIndex++;
+                renderSlide();
+            } else {
+                // If on final comparison slide, jump to vote mode
+                setMode('vote');
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                renderSlide();
+            }
+        }
+
+        function goToVenueSlide(id) {
+            setMode('slide');
+            currentSlideIndex = id;
+            renderSlide();
+        }
+
+        // Render Grid UI
+        function renderGrid() {
+            const gridContainer = document.getElementById('grid-content');
+            gridContainer.innerHTML = '';
+
+            venues.forEach(venue => {
+                let starsHtml = '';
+                const fullStars = Math.floor(venue.score / 2);
+                for(let i=0; i<5; i++) {
+                    starsHtml += (i < fullStars) ? `<i class="fa-solid fa-star text-amber-400"></i>` : `<i class="fa-regular fa-star text-slate-600"></i>`;
+                }
+
+                gridContainer.innerHTML += `
+                    <div class="bg-slate-900/40 hover:bg-slate-900/60 rounded-2xl border border-slate-800/80 hover:border-slate-700/60 p-5 transition-all duration-300 flex flex-col justify-between hover:scale-[1.02] group shadow-lg" data-tag="${venue.tag}">
+                        <div>
+                            <!-- Header with rank/rating -->
+                            <div class="flex justify-between items-start gap-2 mb-3">
+                                <span class="bg-slate-950 text-slate-400 text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-800">
+                                    ${venue.tag}
+                                </span>
+                                <div class="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg">
+                                    <span class="text-amber-400 font-extrabold text-xs">${venue.score}</span>
+                                </div>
+                            </div>
+
+                            <!-- Name -->
+                            <h3 class="text-xl font-extrabold text-white group-hover:text-amber-400 transition-colors mb-2">
+                                <span class="text-transparent bg-clip-text bg-gradient-to-r ${venue.color}">${venue.rank}</span> ${venue.name}
+                            </h3>
+
+                            <!-- Short Highlight -->
+                            <p class="text-slate-400 text-xs mb-4 line-clamp-2">
+                                ${venue.summary}
+                            </p>
+                        </div>
+
+                        <!-- Footer actions inside grid card -->
+                        <div class="border-t border-slate-800/60 pt-4 mt-4 flex items-center justify-between">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Puan: ${venue.score}/10</span>
+                            <button onclick="goToVenueSlide(${venue.id})" class="text-xs font-bold text-amber-500 group-hover:text-amber-400 transition-all flex items-center gap-1">
+                                Detaylara Git <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Filtering Logic for Grid Mode
+        function filterVenues(tag) {
+            // Update UI filter button states
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-amber-500', 'text-slate-950');
+                btn.classList.add('bg-slate-800', 'text-slate-400');
+            });
+
+            // Find current clicked button and activate it
+            event.currentTarget.classList.remove('bg-slate-800', 'text-slate-400');
+            event.currentTarget.classList.add('bg-amber-500', 'text-slate-950');
+
+            // Filter cards
+            const cards = document.querySelectorAll('#grid-content > div');
+            let count = 0;
+            
+            cards.forEach(card => {
+                const cardTag = card.getAttribute('data-tag');
+                if (tag === 'all' || cardTag === tag) {
+                    card.style.display = 'flex';
+                    count++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            document.getElementById('venue-count').innerText = count;
+        }
+
+        // Render Oylama/Karar Modu
+        function renderVotingRows() {
+            const container = document.getElementById('vote-cards-list');
+            container.innerHTML = '';
+
+            venues.forEach(v => {
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-3.5 md:p-4 rounded-xl bg-slate-950/60 border border-slate-800 hover:border-slate-700/60 transition-all gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr ${v.color} flex items-center justify-center text-lg font-black text-slate-950 shrink-0">
+                                ${v.id === 1 ? '🥇' : v.id === 2 ? '🥈' : v.id === 3 ? '🥉' : '🍷'}
+                            </div>
+                            <div>
+                                <h4 class="font-extrabold text-sm md:text-base text-white">${v.rank} ${v.name}</h4>
+                                <p class="text-xs text-slate-400 hidden md:block">${v.highlight}</p>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Counter -->
+                        <div class="flex items-center gap-4">
+                            <!-- Display current vote amount -->
+                            <div class="text-right">
+                                <span class="text-[10px] font-bold uppercase text-slate-500 block">Ekip Oyu</span>
+                                <span id="vote-count-${v.id}" class="text-lg font-black text-rose-400">${votes[v.id]} Oy</span>
+                            </div>
+
+                            <!-- Buttons to decrease or increase -->
+                            <div class="flex gap-1.5">
+                                <button onclick="changeVote(${v.id}, -1)" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-rose-400 hover:border-rose-500/20 transition-all text-xs">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                                <button onclick="changeVote(${v.id}, 1)" class="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center hover:bg-amber-400 transition-all text-xs font-bold">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function changeVote(id, amount) {
+            if (votes[id] + amount >= 0) {
+                votes[id] += amount;
+                
+                // Update local counts immediately on UI to avoid complete re-renders
+                const countElem = document.getElementById(`vote-count-${id}`);
+                if (countElem) {
+                    countElem.innerText = `${votes[id]} Oy`;
+                }
+
+                // Update standard list render values
+                const quickVoteText = document.getElementById(`quick-vote-btn-text-${id}`);
+                if (quickVoteText) {
+                    quickVoteText.innerText = votes[id] > 0 ? `${votes[id]} Oy Verildi` : 'Oy Ver';
+                }
+            }
+        }
+
+        function addQuickVote(id) {
+            changeVote(id, 1);
+            // Quick feedback indication
+            const btnText = document.getElementById(`quick-vote-btn-text-${id}`);
+            if (btnText) {
+                btnText.innerHTML = `<span class="text-rose-400">❤️ +1 Oy Eklendi</span>`;
+                setTimeout(() => {
+                    btnText.innerText = `${votes[id]} Oy Verildi`;
+                }, 1000);
+            }
+        }
+
+        function resetVotes() {
+            venues.forEach(v => {
+                votes[v.id] = 0;
+            });
+            renderVotingRows();
+        }
+
+        // Show Modal with Winner
+        function showWinner() {
+            let winner = null;
+            let maxVotes = -1;
+
+            venues.forEach(v => {
+                if (votes[v.id] > maxVotes) {
+                    maxVotes = votes[v.id];
+                    winner = v;
+                }
+            });
+
+            // Prevent showing winner with zero votes
+            if (maxVotes === 0) {
+                // Show custom notification style inside modal or simply pick default rank 1
+                winner = venues[0]; // fallback to Maziden
+            }
+
+            document.getElementById('winner-name').innerText = `${winner.rank} ${winner.name}`;
+            document.getElementById('winner-votes').innerText = `${maxVotes} Oy`;
+            document.getElementById('winner-quote').innerText = `"${winner.summary}" - Gruptaki herkes bu mekana hayran kalacak!`;
+
+            // Open Modal
+            const modal = document.getElementById('winner-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                document.getElementById('winner-card').classList.remove('scale-95');
+                document.getElementById('winner-card').classList.add('scale-100');
+            }, 50);
+        }
+
+        function closeWinnerModal() {
+            const modal = document.getElementById('winner-modal');
+            document.getElementById('winner-card').classList.remove('scale-100');
+            document.getElementById('winner-card').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        // Navigation Modes switching
+        function setMode(mode) {
+            currentMode = mode;
+            
+            // Toggle container classes
+            document.getElementById('slide-mode-container').classList.add('hidden');
+            document.getElementById('grid-mode-container').classList.add('hidden');
+            document.getElementById('vote-mode-container').classList.add('hidden');
+
+            // Reset navigation header buttons styling
+            const btnSlide = document.getElementById('btn-slide-mode');
+            const btnGrid = document.getElementById('btn-grid-mode');
+            const btnVote = document.getElementById('btn-vote-mode');
+
+            [btnSlide, btnGrid, btnVote].forEach(btn => {
+                btn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-white";
+            });
+
+            if (mode === 'slide') {
+                document.getElementById('slide-mode-container').classList.remove('hidden');
+                btnSlide.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20";
+                renderSlide();
+            } else if (mode === 'grid') {
+                document.getElementById('grid-mode-container').classList.remove('hidden');
+                btnGrid.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20";
+                renderGrid();
+            } else if (mode === 'vote') {
+                document.getElementById('vote-mode-container').classList.remove('hidden');
+                btnVote.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 bg-gradient-to-r from-amber-500 to-rose-500 text-slate-950 shadow-lg shadow-rose-500/20";
+                renderVotingRows();
+            }
+        }
+
+        // Keyboard Arrow Controls
+        document.addEventListener('keydown', (e) => {
+            if (currentMode === 'slide') {
+                if (e.key === 'ArrowRight') {
+                    nextSlide();
+                } else if (e.key === 'ArrowLeft') {
+                    prevSlide();
+                }
+            }
+        });
+
+        // Touch Swipe support for Mobile
+        let touchstartX = 0;
+        let touchendX = 0;
+        
+        function checkDirection() {
+            if (touchendX < touchstartX - 50) nextSlide(); // swiped left
+            if (touchendX > touchstartX + 50) prevSlide(); // swiped right
+        }
+
+        document.addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            if (currentMode === 'slide') {
+                checkDirection();
+            }
+        });
+
+        // App Initial Launch
+        window.onload = function() {
+            renderSlide();
+        };
+    </script>
+</body>
+</html>
+
+```
